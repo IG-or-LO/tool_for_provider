@@ -183,26 +183,87 @@ bool DataBase::check_log_In(const QString login, const QString password)
     return names==nullptr?false:true;
 }
 
+bool DataBase::check_user_exist(QString dogovor)
+{
+    QSqlQuery query;
+      QString names=nullptr;
+      QString str = QString("SELECT * FROM " USERS " WHERE EXISTS "
+                            "(SELECT " USER_LOGIN " FROM " USERS " WHERE " USER_DOGOVOR "= '"+dogovor+"')");
+
+      query.prepare(str);
+      query.exec();
+     qDebug()<< query.lastError();
+      if(query.isActive()){
+          qDebug()<<"query is active now";
+          while(query.next())
+          {
+              names=query.value(0).toString();
+          }
+      }
+      else
+          qDebug()<<"ERROR:"<<query.lastError();
+
+      return names==nullptr?false:true;
+}
+
+QStringList DataBase::showUserUslugi(const int dogovor)
+{
+        QSqlQuery query;
+        QStringList list;
+        query.prepare("SELECT * FROM " USLUGI " WHERE user_id = ("
+                                                                 "SELECT id FROM " USERS " WHERE "
+                                                                 " " USER_DOGOVOR "= :dog) ");
+        query.bindValue(":dog",dogovor);
+        query.exec();
+
+        QSqlRecord rec=query.record();
 
 
-//bool DataBase::createArchiveMessageTable(QString user_name)
-//{
-//    QSqlQuery query;
-//    QString str=QString("CREATE TABLE '"+user_name+"' ("
-//                                                   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-//                                                   "ANOTHER_USER INTEGER,"
-//                                                   "MAILS VARCHAR,"
-//                                                   "FOREIGN KEY (ANOTHER_USER) REFERENCES "
-//                                                   "" SERVER " (id) )");
-//    qDebug()<< "CREATE DATABASE "<<user_name;
-//    if(query.exec(str))
-//        return true;
-//    else
-//    {
-//        qDebug()<<query.lastError();
-//        return false;
-//    }
-//}
+
+        qDebug()<<"all fields:"<<rec.count();
+        while (query.next()){
+            for(int i=0;i<rec.count()-1;i++){
+               list.append(query.value(i+1).toString());
+            }
+        }
+        qDebug()<<list;
+        return list;
+
+}
+
+QStringList DataBase::getNamesUslugi()
+{
+    QStringList list;
+    QSqlQuery query;
+
+    query.prepare("SELECT * FROM " USLUGI " WHERE user_id ='1'");
+    query.exec();
+
+    QSqlRecord rec=query.record();
+    qDebug()<<"there are fields:"<<rec.count();
+    while (query.next()){
+        for(int i=1;i<rec.count();i++){
+            list.append(rec.fieldName(i));
+        }
+    }
+    qDebug()<<list;
+    return list;
+}
+
+bool DataBase::add_new_usluga(const QString text)
+{
+    QSqlQuery query;
+    query.prepare("ALTER TABLE " USLUGI " ADD '"+text+"' BOOLEAN FALSE");
+    if(!query.exec())
+    {
+        qDebug()<<"cant add new usluga:"<<query.lastError();
+        return false;
+    }
+    else
+        return true;
+}
+
+
 
 
 //bool DataBase::InsertIntoArchiveMessageTable(QString user_name_table, QString user_id_name,QString message)
@@ -224,53 +285,7 @@ bool DataBase::check_log_In(const QString login, const QString password)
 //    }
 //}
 
-//QString DataBase::loadArchiveMessages(QString user_name_table, QString user_id_name)
-//{
-//    QSqlQuery query;
-//    QString males="";
 
-//    QString str = QString("SELECT MAILS FROM "+user_name_table+" WHERE ANOTHER_USER = '"+user_id_name+"'  ");
-//    query.prepare(str);
-//    query.exec();
-
-//   if(query.isActive()){
-//       qDebug()<<"query is active now";
-//       while(query.next())
-//       {
-//           males.append(query.value(0).toString());
-//           males.append("\n");
-//       }
-//   }
-//   else
-//       qDebug()<<"ERROR:"<<query.lastError();
-
-//   return males;
-//}
-
-//QString DataBase::getPersonalInfo(QString name_user_to_load, int name_surname_or_about)
-//{
-//    QString colomn;
-//    QString mess;
-//    if(name_surname_or_about==0)
-//        colomn="NAME";
-//    else if(name_surname_or_about==1)
-//        colomn="SURNAME";
-//    else if(name_surname_or_about==2)
-//        colomn="ABOUT";
-
-//    QSqlQuery query;
-//    QString str = QString("SELECT "+colomn+" FROM " SERVER " WHERE NICKNAME = '"+name_user_to_load+"'  ");
-//    query.prepare(str);
-//    query.exec();
-
-//    if(query.first())
-//        mess=query.value(0).toString();
-//    else
-//        qDebug()<<query.lastError();
-
-//    return mess;
-
-//}
 
 
 
@@ -323,49 +338,6 @@ bool DataBase::check_log_In(const QString login, const QString password)
 //    return false;
 //}
 
-//bool DataBase::UpdatePasswordIntoMainTable(QString name_user, QString newpass)
-//{
-//    QSqlQuery query;
-//    /* В начале SQL запрос формируется с ключами,
-//     * которые потом связываются методом bindValue
-//     * для подстановки данных из QVariantList
-//     * */
-//    query.prepare("UPDATE  " SERVER " SET " SERVER_PASSWORD" = '"+newpass+"' "
-//                                   "WHERE " SERVER_NICKNAME " = '"+name_user+"' ");
 
-//    // После чего выполняется запросом методом exec()
-//    if(!query.exec()){
-//        qDebug() << "error UPDATE PASS in " << SERVER<<"to user:"<<name_user;
-//        qDebug() << query.lastError().text();
-//        return false;
-//    } else {
-//        return true;
-//    }
-//    return false;
-//}
-
-//bool DataBase::check_name_exist(const QString nickname)
-//{
-//    QSqlQuery query;
-//    QString names=nullptr;
-//    QString str = QString("SELECT * FROM ServerTable WHERE EXISTS "
-//                          "(SELECT NICKNAME FROM ServerTable WHERE NICKNAME= '"+nickname+"')");
-
-//    query.prepare(str);
-//    query.exec();
-//   qDebug()<< query.lastError();
-//    if(query.isActive()){
-//        qDebug()<<"query is active now";
-//        while(query.next())
-//        {
-//            names=query.value(0).toString();
-//        }
-//    }
-//    else
-//        qDebug()<<"ERROR:"<<query.lastError();
-
-//    return names==nullptr?false:true;
-
-//}
 
 

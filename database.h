@@ -61,19 +61,12 @@ public:
      * Подключение к базе данных и вставка записей в таблицу
      * */
     bool connectToDataBase();
-    bool inserIntoMainTable(const QString nickname, const QString password);
     bool check_log_In(const QString login, const QString password);
+    bool check_user_exist(const QString dogovor);
+    QStringList showUserUslugi(const int dogovor);
+    QStringList getNamesUslugi();
+    bool add_new_usluga(const QString text);
 
-    //////////////////
-
-    bool UpdatePersonalInfoIntoMainTable(QString name_user,QString name_add,QString surname_add,QString about);
-    bool UpdatePasswordIntoMainTable(QString name_user,QString newpass);
-    bool check_name_exist(const QString nickname);
-
-    bool createArchiveMessageTable(QString user_name);
-    bool InsertIntoArchiveMessageTable(QString user_name_table,QString user_id_name,QString message);
-    QString loadArchiveMessages(QString user_name_table,QString user_id_name);
-    QString getPersonalInfo(QString name_user_to_load, int name_surname_or_about);
 
 private:
     // Сам объект базы данных, с которым будет производиться работа

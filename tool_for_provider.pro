@@ -20,11 +20,13 @@ SOURCES += \
     database.cpp \
     main.cpp \
     mainwindow.cpp \
+    qdinamiccheckbox.cpp \
     stylehelper.cpp
 
 HEADERS += \
     database.h \
     mainwindow.h \
+    qdinamiccheckbox.h \
     stylehelper.h
 
 FORMS += \
