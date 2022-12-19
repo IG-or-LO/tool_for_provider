@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "database.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -15,8 +16,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_pbEnter_clicked();
+
 private:
     Ui::MainWindow *ui;
+    DataBase        *db;
     void setInterfaceStyle();//метод для применения стилей интрефейса приложения
+    bool addNewUsluga(QString text);
 };
 #endif // MAINWINDOW_H
