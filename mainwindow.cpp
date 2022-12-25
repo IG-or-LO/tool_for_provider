@@ -4,10 +4,11 @@
 #include "qdinamiccheckbox.h"
 
 #include <QMessageBox>
+#include <QStyleOption>
 #include <QInputDialog>
 #include <QValidator>
-#include <QCheckBox>
-#include <QLayout>
+#include <QPainter>
+
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -19,15 +20,16 @@ MainWindow::MainWindow(QWidget *parent)
     db=new DataBase;
     db->connectToDataBase();
     /////
+    ///connections
+    connect(ui->pb_ClientBack,&QPushButton::clicked,this,&MainWindow::on_pbBack_clicked);
+    connect(ui->tabWidget,SIGNAL(currentChanged(int)),this, SLOT(updateSizes(int)));
     ///
-    ///
+    setTabWidgetStyle();
     addComboBoxes();
     setInterfaceStyle();
 
     //установка параметров ввода и списка услуг из бд
     ui->leDogovor->setValidator(new QIntValidator(0,999999,this));
-
-
 }
 
 MainWindow::~MainWindow()
@@ -46,6 +48,43 @@ void MainWindow::setInterfaceStyle()
     //ЧМОКИ-ЧМОКИ))
 
 }
+
+void MainWindow::setTabWidgetStyle()
+{
+   // ui->tabWidget->tabBar()->hide();
+
+    ui->tab_login->setObjectName("login");
+    ui->tab_main->setObjectName("main");
+    ui->tab_uslugi->setObjectName("uslugi");
+    ui->tab_addClient->setObjectName("addClient");
+
+    ui->tabWidget->setCurrentIndex(0);
+    ui->leName->setFocus();
+}
+
+void MainWindow::paintEvent(QPaintEvent *event)
+{
+    QStyleOption opt;
+    opt.init(this);
+    QPainter p(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p,this);
+    QWidget::paintEvent(event);
+}
+
+void MainWindow::updateSizes(int index)
+{
+    for(int i=0;i<ui->tabWidget->count();i++)
+        if(i!=index)
+            ui->tabWidget->widget(i)->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+
+    ui->tabWidget->widget(index)->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    ui->tabWidget->widget(index)->resize(ui->tabWidget->widget(index)->minimumSizeHint());
+    ui->tabWidget->widget(index)->adjustSize();
+    resize(minimumSizeHint());
+    adjustSize();
+}
+
+//добавление чекбоксов услуг
 void MainWindow::addComboBoxes()
 {
      listUslugi=db->getNamesUslugi();
@@ -58,19 +97,13 @@ void MainWindow::addComboBoxes()
 }
 
 
-
-
-bool MainWindow::addNewUsluga(QString text)
+void MainWindow::addNewUsluga_ui(QString text)
 {
     qdinamicCheckBox *newbox=new qdinamicCheckBox;
-
     newbox->setLayoutDirection(Qt::RightToLeft);
-    newbox->setText("text");
-
+    newbox->setText(text);
     ui->verticalLayout_3->addWidget(newbox);
-    return true;
 }
-
 
 void MainWindow::on_pbEnter_clicked()
 {
@@ -101,11 +134,13 @@ void MainWindow::on_pbShowUslugi_clicked()
     }
     else
     {
+        QString str="Клиент: "+ui->leDogovor->text();
+        ui->lablel_Client->setText(str);
         QStringList statuslist;
         statuslist=db->showUserUslugi(ui->leDogovor->text().toInt());
         for (int i=0; i<listUslugi.size();i++) {
             qdinamicCheckBox *box=qobject_cast<qdinamicCheckBox*>(ui->verticalLayout_3->itemAt(i)->widget());
-            if(statuslist[i]=="0"){
+            if(statuslist[i]=="1"){
                 box->setChecked(true);
             }
             else
@@ -115,6 +150,28 @@ void MainWindow::on_pbShowUslugi_clicked()
     }
 }
 
+void MainWindow::on_pbSaveChanges_clicked()
+{
+    QMessageBox mess;
+    bool ok;
+    for (int i=0; i<ui->verticalLayout_3->count(); i++) {
+        qdinamicCheckBox *box=qobject_cast<qdinamicCheckBox*>(ui->verticalLayout_3->itemAt(i)->widget());
+            ok=db->add_status_uslugi(ui->leDogovor->text(), box->text(), box->isChecked());
+            if(!ok)
+                break;
+    }
+    if(ok)
+    {
+        mess.setText("Данные успешно записаны");
+        mess.exec();
+    }
+    else
+    {
+        mess.setText("Ошибка при записи");
+        mess.exec();
+    }
+
+}
 
 
 void MainWindow::on_pbAddUsluga_clicked()
@@ -134,10 +191,7 @@ void MainWindow::on_pbAddUsluga_clicked()
         if(db->add_new_usluga(str)){
             mess.setText("Услуга добавлена!");
             mess.exec();
-            qdinamicCheckBox *newbox=new qdinamicCheckBox(this);
-            newbox->setText(str);
-            newbox->setLayoutDirection(Qt::RightToLeft);
-            ui->verticalLayout_3->addWidget(newbox);
+            addNewUsluga_ui(str);
         }
         else
         {
@@ -147,7 +201,64 @@ void MainWindow::on_pbAddUsluga_clicked()
     }
 }
 
-void MainWindow::on_pushButton_3_clicked()
+void MainWindow::on_pbBack_clicked()
 {
     ui->tabWidget->setCurrentIndex(1);
+}
+
+void MainWindow::on_pbClientSave_clicked()
+{
+    QMessageBox mess;
+    QStringList list;
+    if(ui->leClientLogin->text()!="" && ui->leClientPass->text()!="" &&
+       ui->leClientFio->text()!="" && ui->leClientMail->text()!="" &&
+       ui->leClientDog->text()!="" && ui->leClientDate->text()!="" &&
+       ui->leClientTarif->text()!="" && ui->leClientAddress->text()!="")
+    {
+        list.append(ui->leClientLogin->text()); list.append(ui->leClientPass->text());
+        list.append(ui->leClientFio->text()); list.append(ui->leClientDog->text());
+        list.append(ui->leClientMail->text()); list.append(ui->leClientAddress->text());
+        list.append(ui->leClientTarif->text());list.append(ui->leClientDate->text());
+        if(db->add_new_client(list))
+        {
+            mess.setText("Клиент добавлен!");
+            mess.exec();
+            clearClientLables();
+        }
+        else
+        {
+            mess.setText("Ошибка!");
+            mess.exec();
+        }
+
+    }
+    else
+    {
+        mess.setText("Заполните все поля!");
+        mess.exec();
+    }
+}
+
+void MainWindow::clearClientLables()
+{
+           ui->leClientLogin->clear();
+           ui->leClientPass->clear();
+           ui->leClientFio->clear();
+           ui->leClientMail->clear();
+           ui->leClientDog->clear();
+           ui->leClientDate->clear();
+           ui->leClientTarif->clear();
+           ui->leClientAddress->clear();
+}
+
+void MainWindow::on_pbAddClient_clicked()
+{
+    ui->tabWidget->setCurrentIndex(3);
+}
+
+void MainWindow::on_pbExit_clicked()
+{
+    ui->leName->clear();
+    ui->lePass->clear();
+    ui->tabWidget->setCurrentIndex(0);
 }

@@ -88,11 +88,15 @@ bool DataBase::createMainTable()
                             USER_TARIF      " VARCHAR   NOT NULL,"
                             USER_DATE       " DATE  NOT NULL"
                              " )"
-                    )){
+                    ))
+    {
         qDebug() << "DataBase: error of create " <<USERS;
         qDebug() << query.lastError().text();
         return false;
-    } else {
+    }
+    else
+    {
+
         return true;
     }
     return false;
@@ -104,29 +108,30 @@ bool DataBase::createUslugiTable()
      * с последующим его выполнением.
      * */
     QSqlQuery query;
+     query.exec("PRAGMA foreign_keys = ON;");
     if(!query.exec( "CREATE TABLE " USLUGI  " ("
                            // "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                            "user_id    INTEGER NOT NULL,"
-                            USLUGI_CCTV                 " BOOLEAN NOT NULL,"
-                            USLUGI_ANTIVIRUS            " BOOLEAN NOT NULL,"
-                            USLUGI_CLOUDGAMES           " BOOLEAN NOT NULL,"
-                            USLUGI_GARANTEEPLUS         " BOOLEAN NOT NULL,"
-                            USLUGI_LITRES               " BOOLEAN NOT NULL,"
-                            USLUGI_OFICCE365            " BOOLEAN NOT NULL,"
-                            USLUGI_TURBO                " BOOLEAN NOT NULL,"
-                            USLUGI_FIXEDIP              " BOOLEAN NOT NULL,"
-                            USLUGI_PROMISEDPAYMENT      " BOOLEAN NOT NULL,"
-                            USLUGI_PARENTALCONTROL      " BOOLEAN NOT NULL,"
-                            USLUGI_COMPUTERHELP         " BOOLEAN NOT NULL,"
-                            USLUGI_URGENTCONNECTION     " BOOLEAN NOT NULL,"
-                            USLUGI_MULTIROOM            " BOOLEAN NOT NULL,"
-                            USLUGI_LOCALDRIVE           " BOOLEAN NOT NULL,"
-                            USLUGI_SELFBLOCK            " BOOLEAN NOT NULL,"
-                            USLUGI_PREMIUM              " BOOLEAN NOT NULL,"
-                            USLUGI_MULTISCREEN          " BOOLEAN NOT NULL,"
-                            USLUGI_SMSPAYMENT           " BOOLEAN NOT NULL,"
-                            USLUGI_LIKEATHOME           " BOOLEAN NOT NULL,"
-                            "FOREIGN KEY (user_id) REFERENCES " USERS " (id) "
+                            "user_id INTEGER NOT NULL,"
+                            USLUGI_CCTV                 " BOOLEAN DEFAULT '0',"
+                            USLUGI_ANTIVIRUS            " BOOLEAN DEFAULT '0',"
+                            USLUGI_CLOUDGAMES           " BOOLEAN DEFAULT '0',"
+                            USLUGI_GARANTEEPLUS         " BOOLEAN DEFAULT '0',"
+                            USLUGI_LITRES               " BOOLEAN DEFAULT '0',"
+                            USLUGI_OFICCE365            " BOOLEAN DEFAULT '0',"
+                            USLUGI_TURBO                " BOOLEAN DEFAULT '0',"
+                            USLUGI_FIXEDIP              " BOOLEAN DEFAULT '0',"
+                            USLUGI_PROMISEDPAYMENT      " BOOLEAN DEFAULT '0',"
+                            USLUGI_PARENTALCONTROL      " BOOLEAN DEFAULT '0',"
+                            USLUGI_COMPUTERHELP         " BOOLEAN DEFAULT '0',"
+                            USLUGI_URGENTCONNECTION     " BOOLEAN DEFAULT '0',"
+                            USLUGI_MULTIROOM            " BOOLEAN DEFAULT '0',"
+                            USLUGI_LOCALDRIVE           " BOOLEAN DEFAULT '0',"
+                            USLUGI_SELFBLOCK            " BOOLEAN DEFAULT '0',"
+                            USLUGI_PREMIUM              " BOOLEAN DEFAULT '0',"
+                            USLUGI_MULTISCREEN          " BOOLEAN DEFAULT '0',"
+                            USLUGI_SMSPAYMENT           " BOOLEAN DEFAULT '0',"
+                            USLUGI_LIKEATHOME           " BOOLEAN DEFAULT '0',"
+                            "FOREIGN KEY (user_id) REFERENCES " USERS " (id)"
                              " )"
                     )){
         qDebug() << "DataBase: error of create " <<USERS;
@@ -154,10 +159,33 @@ bool DataBase::createWorkersTable()
         qDebug() << query.lastError().text();
         return false;
     } else {
+         createAdminAcc();
         return true;
     }
     return false;
 }
+
+bool DataBase::createAdminAcc()
+{
+        QString log="admin";
+        QString pass="12345";
+        QSqlQuery query;
+        QString str=QString("INSERT INTO " WORKERS " (LOGIN, PASSWORD) VALUES('"+log+"', '"+pass+"')");
+    //    query.bindValue(":LOG", "admin");
+     //   query.bindValue(":PASS", "12345");
+        qDebug()<< "try add ADMIN";
+        if(query.exec(str))
+            return true;
+        else
+        {
+            qDebug()<<query.lastError();
+            return false;
+        }
+}
+
+
+
+
 
 bool DataBase::check_log_In(const QString login, const QString password)
 {
@@ -263,81 +291,110 @@ bool DataBase::add_new_usluga(const QString text)
         return true;
 }
 
+bool DataBase::add_status_uslugi(const QString dogovor,const QString colomn, const bool status)
+{
+    QSqlQuery query;
+    query.prepare("UPDATE " USLUGI " SET '"+colomn+"' = (:status) WHERE user_id= ("
+                                              "SELECT id FROM " USERS " WHERE " USER_DOGOVOR "= (:dogovor) )");
 
+     query.bindValue(":status", status);
+     query.bindValue(":dogovor", dogovor);
 
+    qDebug()<< "try insert into db- "<<USLUGI<<" in colomn="<<colomn<<" status= "<<status;
+       if(query.exec())
+           return true;
+       else
+       {
+           qDebug()<<query.lastError();
+           return false;
+       }
+}
 
-//bool DataBase::InsertIntoArchiveMessageTable(QString user_name_table, QString user_id_name,QString message)
-//{
-//    QSqlQuery query;
-//    QString str=QString("INSERT INTO '"+user_name_table+"'"
-//                                                        "(ANOTHER_USER, MAILS)"
-//                                                        "VALUES("
-//                                                        "(SELECT NICKNAME FROM " SERVER " WHERE " SERVER_NICKNAME " = '"+user_id_name+"'),"
-//                                                        "('"+message+"')  "
-//                                                        ") ");
-//    qDebug()<< "try insert into db- "<<user_name_table<<" this meesage= "<<message;
-//    if(query.exec(str))
-//        return true;
-//    else
-//    {
-//        qDebug()<<query.lastError();
-//        return false;
-//    }
-//}
+bool DataBase::add_new_client(const QStringList &list)
+{
+    QSqlQuery query;
+    QString str=QString("INSERT INTO " USERS " (LOGIN, PASSWORD, FIO,DOGOVOR,MAIL,"
+                                             "ADRESS,TARIF,DATE)"
+                        " VALUES('"+list[0]+"', '"+list[1]+"', '"+list[2]+"', '"+list[3]+"', '"+list[4]+"',"
+                                  "'"+list[5]+"', '"+list[6]+"', '"+list[7]+"')");
 
+    qDebug()<< "try add Client";
+    if(query.exec(str))
+    {
+        add_new_record_uslugi(list[3]);
+        return true;
+    }
+    else
+    {
+        qDebug()<<query.lastError();
+        return false;
+    }
+}
 
+bool DataBase::add_new_record_uslugi(const QString dogovor)
+{
+    QString id;
+    QSqlQuery query;
 
+    query.prepare("SELECT id FROM " USERS " WHERE DOGOVOR ='"+dogovor+"'");
+    query.exec();
 
+   qDebug()<<"try to get id";
+    if(query.isActive()){
+        qDebug()<<"query is active now";
+        while(query.next())
+        {
+            id=query.value(0).toString();
+        }
+    }
+    else
+        qDebug()<<"ERROR getting id:"<<query.lastError();
 
-///* Метод для вставки записи в таблицу пользователей
-// * */
-//bool DataBase::inserIntoMainTable(const QString nickname, const QString password)
-//{
+    QString str=QString("INSERT INTO " USLUGI " (user_id)"
+                        " VALUES('"+id+"')");
 
-//    QSqlQuery query;
-//    /* В начале SQL запрос формируется с ключами,
-//     * которые потом связываются методом bindValue
-//     * для подстановки данных из QVariantList
-//     * */
-//    query.prepare("INSERT INTO " SERVER " ( " SERVER_NICKNAME ", "
-//                                              SERVER_PASSWORD ") "
-//                  "VALUES (:NICKNAME, :PASSWORD )");
-//    query.bindValue(":NICKNAME",  nickname);
-//    query.bindValue(":PASSWORD",  password);
-//    // После чего выполняется запросом методом exec()
-//    if(!query.exec()){
-//        qDebug() << "error insert into " << SERVER;
-//        qDebug() << query.lastError().text();
-//        return false;
-//    } else {
-//        return true;
-//    }
-//    return false;
-//}
+    qDebug()<< "try add new record in table uslugi";
+    if(query.exec(str))
+    {
+        qDebug()<< "sucsess in adding";
+        return true;
+    }
+    else
+    {
+        qDebug()<<query.lastError();
+        return false;
+    }
+}
 
-//bool DataBase::UpdatePersonalInfoIntoMainTable(QString name_user, QString name_add, QString surname_add, QString about)
-//{
-//    QSqlQuery query;
-//    /* В начале SQL запрос формируется с ключами,
-//     * которые потом связываются методом bindValue
-//     * для подстановки данных из QVariantList
-//     * */
-//    query.prepare("UPDATE  " SERVER " SET " SERVER_NAME" = '"+name_add+"' ,"
-//                                            SERVER_SURNAME" = '"+surname_add+"' ,"
-//                                            SERVER_ABOUT" = '"+about+"'"
-//                                            "WHERE " SERVER_NICKNAME " = '"+name_user+"' ");
+bool DataBase::renameTable(const QString before, const QString after)
+{
 
-//    // После чего выполняется запросом методом exec()
-//    if(!query.exec()){
-//        qDebug() << "error UPDATE INFO in " << SERVER<<"to user:"<<name_user;
-//        qDebug() << query.lastError().text();
-//        return false;
-//    } else {
-//        return true;
-//    }
-//    return false;
-//}
+    QSqlQuery query;
+    QString str=QString("ALTER TABLE '"+before+"' RENAME TO '"+after+"' ");
+    qDebug()<<"TRY to rename table:"<<before;
+    if(!query.exec(str))
+    {
+        qDebug()<<"cant rename table: "<<query.lastError();
+        return false;
+    }
+    else
+        return true;
+}
 
-
-
-
+bool DataBase::createRenamedTable()
+{
+    QSqlQuery query;
+    if(!query.exec( "CREATE TABLE " USLUGI  " ("
+                           // "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                            "user_id    INTEGER NOT NULL,"
+                            "FOREIGN KEY (user_id) REFERENCES " USERS " (id) "
+                             " )"
+                    )){
+        qDebug() << "DataBase: error of create RenamedTable" <<USLUGI;
+        qDebug() << query.lastError().text();
+        return false;
+    } else {
+        return true;
+    }
+    return false;
+}

@@ -66,6 +66,9 @@ public:
     QStringList showUserUslugi(const int dogovor);
     QStringList getNamesUslugi();
     bool add_new_usluga(const QString text);
+    bool add_status_uslugi(const QString dogovor,const QString colomn, const bool status);
+    bool delete_usluga(const QString &colomn);
+    bool add_new_client(const QStringList &list);
 
 
 private:
@@ -81,6 +84,12 @@ private:
     bool createMainTable();
     bool createUslugiTable();
     bool createWorkersTable();
+    bool createAdminAcc();
+    bool add_new_record_uslugi(const QString dogovor);
+
+    bool renameTable(const QString before, const QString after);
+    bool createRenamedTable();
+
 
 
 
