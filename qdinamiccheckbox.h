@@ -7,6 +7,7 @@
 class qdinamicCheckBox: public QCheckBox
 {
     Q_OBJECT
+   // Q_PROPERTY(type name READ name WRITE setName NOTIFY nameChanged)
    public:
        explicit qdinamicCheckBox( QWidget *parent = 0);
        ~qdinamicCheckBox();
@@ -19,5 +20,6 @@ class qdinamicCheckBox: public QCheckBox
    private:
        int checkBoxID = 0;   // Локальная переменная, номер кнопки
    };
+
 
 #endif // QDINAMICCHECKBOX_H

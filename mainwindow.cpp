@@ -22,12 +22,12 @@ MainWindow::MainWindow(QWidget *parent)
     /////
     ///connections
     connect(ui->pb_ClientBack,&QPushButton::clicked,this,&MainWindow::on_pbBack_clicked);
+    connect(ui->pb_AddWorkerBack,&QPushButton::clicked,this,&MainWindow::on_pbBack_clicked);
     connect(ui->tabWidget,SIGNAL(currentChanged(int)),this, SLOT(updateSizes(int)));
-    ///
+   ///
     setTabWidgetStyle();
     addComboBoxes();
     setInterfaceStyle();
-
     //установка параметров ввода и списка услуг из бд
     ui->leDogovor->setValidator(new QIntValidator(0,999999,this));
 }
@@ -37,45 +37,23 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-//метод для применения стилей интрефейса приложения FOR DASHA
 void MainWindow::setInterfaceStyle()
 {
-
-        //ПРИМЕР КАК ЗАДАТЬ ЭЛЛЕМЕНТУ НОВЫЙ СТИЛЬ
-   //ui->pbEnter->setStyleSheet(stylehelper::get_enter_button_style());
-
-    //pbEnter-это имя кнопки(можно в файле mainwindow.ui смотреть имена обьектов)
-    //get_enter_button_style()-это функция, в которой ты описала стиль для этого обьекта
-    //ЧМОКИ-ЧМОКИ))
-
-}
-
-void MainWindow::setTabWidgetStyle()
-{
-   ui->tabWidget->tabBar()->hide();
-    ui->tab_login->setObjectName("login");
-    ui->tab_main->setObjectName("main");
-    ui->tab_uslugi->setObjectName("uslugi");
-    ui->tab_addClient->setObjectName("addClient");
-
-    ui->tabWidget->setCurrentIndex(0);
-    ui->leName->setFocus();
-    ui->tabWidget->setStyleSheet(stylehelper::getTabWidgetStyle());
-    ui->tab_login->setStyleSheet(stylehelper::getTabStyle());
-    ui->tab_main->setStyleSheet(stylehelper::getTabStyle());
-    ui->tab_uslugi->setStyleSheet(stylehelper::getTabStyle());
-    ui->tab_addClient->setStyleSheet(stylehelper::getTabStyle());
+    //registration tab
     ui->frame->setStyleSheet(stylehelper::getQframeStyle());
-    ui->label_login->setStyleSheet(stylehelper::getQLabelStyle());
+    ui->label_login->setStyleSheet(stylehelper::getQLabelStyle());   
     ui->label_pass->setStyleSheet(stylehelper::getQLabelStyle());
     ui->label_enter_or_reg->setStyleSheet(stylehelper::getQLabelZagolovokStyle());
     ui->pbEnter->setStyleSheet(stylehelper::getButtonRegistr());
+    //main tab
     ui->label_ClientDogovor->setStyleSheet(stylehelper::getQLabelDogovorStyle());
     ui->pbShowUslugi->setStyleSheet(stylehelper::getQMainButtonsStyle());
     ui->pbAddClient->setStyleSheet(stylehelper::getQMainButtonsStyle());
     ui->pbAddUsluga->setStyleSheet(stylehelper::getQMainButtonsStyle());
     ui->pbExit->setStyleSheet(stylehelper::getQMainButtonsStyle());
     ui->pbBack->setStyleSheet(stylehelper::getQButtonBackStyle());
+    ui->pbAddNewWorker->setStyleSheet(stylehelper::getQMainButtonsStyle());
+    //addclient tab
     ui->pb_ClientBack->setStyleSheet(stylehelper::getQButtonBackStyle());
     ui->pbSaveChanges->setStyleSheet(stylehelper::getSaveButtonStyle());
     ui->pbClientSave->setStyleSheet(stylehelper::getSaveButtonStyle());
@@ -96,11 +74,33 @@ void MainWindow::setTabWidgetStyle()
     ui->leClientAddress->setStyleSheet(stylehelper::getEnterTextStyle());
     ui->leClientTarif->setStyleSheet(stylehelper::getEnterTextStyle());
     ui->leClientDate->setStyleSheet(stylehelper::getEnterTextStyle());
+    //addworkertab
+    ui->frame_2->setStyleSheet(stylehelper::getQframeStyle());
+    ui->laStatus->setStyleSheet(stylehelper::getQLabelStyle());
+    ui->label_login_2->setStyleSheet(stylehelper::getQLabelStyle());
+    ui->label_pass_2->setStyleSheet(stylehelper::getQLabelStyle());
+    ui->label_enter_or_reg_2->setStyleSheet(stylehelper::getQLabelZagolovokStyle());
+    ui->pbReg->setStyleSheet(stylehelper::getButtonRegistr());
+    ui->pb_AddWorkerBack->setStyleSheet(stylehelper::getQButtonBackStyle());
+}
 
+void MainWindow::setTabWidgetStyle()
+{
+    ui->tabWidget->tabBar()->hide();
+    ui->tab_login->setObjectName("login");
+    ui->tab_main->setObjectName("main");
+    ui->tab_uslugi->setObjectName("uslugi");
+    ui->tab_addClient->setObjectName("addClient");
+    ui->tab_addWorker->setObjectName("addWorker");
 
-
-
-
+    ui->tabWidget->setCurrentIndex(0);
+    ui->leName->setFocus();
+    ui->tabWidget->setStyleSheet(stylehelper::getTabWidgetStyle());
+    ui->tab_login->setStyleSheet(stylehelper::getTabStyle());
+    ui->tab_main->setStyleSheet(stylehelper::getTabStyle());
+    ui->tab_uslugi->setStyleSheet(stylehelper::getTabStyle());
+    ui->tab_addClient->setStyleSheet(stylehelper::getTabStyle());
+    ui->tab_addWorker->setStyleSheet(stylehelper::getTabStyle());
 
 }
 
@@ -132,7 +132,8 @@ void MainWindow::addComboBoxes()
      listUslugi=db->getNamesUslugi();
     for (int i=0;i<listUslugi.size();i++) {
         qdinamicCheckBox *newbox=new qdinamicCheckBox(this);
-//        newbox->setStyleSheet(stylehelper::getUslugiCheck());
+       newbox->setStyleSheet(stylehelper::getUslugiCheck());
+      //  newbox->setStyle()
         newbox->setText(listUslugi[i]);
         newbox->setLayoutDirection(Qt::RightToLeft);
         ui->verticalLayout_3->addWidget(newbox);
@@ -152,7 +153,14 @@ void MainWindow::addNewUsluga_ui(QString text)
 void MainWindow::on_pbEnter_clicked()
 {
     if(db->check_log_In(ui->leName->text(),ui->lePass->text()))
-           ui->tabWidget->setCurrentIndex(1);
+    {
+        ui->tabWidget->setCurrentIndex(1);
+        if(!db->check_admin_login(ui->leName->text()))
+        {
+            ui->pbAddNewWorker->hide();
+        }
+    }
+
     else
     {
         QMessageBox mess;
@@ -283,8 +291,10 @@ void MainWindow::on_pbClientSave_clicked()
     }
 }
 
-void MainWindow::clearClientLables()
+void MainWindow::clearClientLables(int tab)
 {
+    if(tab==3)
+    {
            ui->leClientLogin->clear();
            ui->leClientPass->clear();
            ui->leClientFio->clear();
@@ -293,6 +303,13 @@ void MainWindow::clearClientLables()
            ui->leClientDate->clear();
            ui->leClientTarif->clear();
            ui->leClientAddress->clear();
+    }
+    if(tab==4)
+    {
+        ui->leName_2->clear();
+        ui->lePass_2->clear();
+        ui->leStatus->clear();
+    }
 }
 
 void MainWindow::on_pbAddClient_clicked()
@@ -304,5 +321,36 @@ void MainWindow::on_pbExit_clicked()
 {
     ui->leName->clear();
     ui->lePass->clear();
+    ui->pbAddNewWorker->show();
     ui->tabWidget->setCurrentIndex(0);
+}
+
+void MainWindow::on_pbAddNewWorker_clicked()
+{
+    ui->tabWidget->setCurrentIndex(4);
+}
+
+void MainWindow::on_pbReg_clicked()
+{
+    QMessageBox mess;
+    if(ui->leName_2->text()!="" && ui->lePass_2->text()!="" && ui->leStatus->text()!="")
+    {
+        if(db->add_new_worker(ui->leName_2->text(),ui->lePass_2->text(),ui->leStatus->text()))
+        {
+            mess.setText("Работник добавлен!");
+            mess.exec();
+            clearClientLables(4);
+
+        }
+        else
+        {
+            mess.setText("Ошибка, с таким логином уже есть работник!");
+            mess.exec();
+        }
+     }
+     else
+    {
+        mess.setText("Заполните все поля!");
+        mess.exec();
+    }
 }

@@ -17,6 +17,7 @@
 #define WORKERS               "WorkersTable"
 #define WORKER_LOGIN          "LOGIN"
 #define WORKER_PASSWORD       "PASSWORD"
+#define WORKER_STATUS         "STATUS"
 //таблица клиентов
 #define USERS               "UsersTable"
 #define USER_LOGIN          "LOGIN"
@@ -69,6 +70,8 @@ public:
     bool add_status_uslugi(const QString dogovor,const QString colomn, const bool status);
     bool delete_usluga(const QString &colomn);
     bool add_new_client(const QStringList &list);
+    bool check_admin_login(const QString &name);
+    bool add_new_worker(const QString login, const QString password,const QString status);
 
 
 private:
@@ -89,8 +92,6 @@ private:
 
     bool renameTable(const QString before, const QString after);
     bool createRenamedTable();
-
-
 
 
 

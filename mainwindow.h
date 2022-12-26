@@ -38,6 +38,10 @@ private slots:
 
     void on_pbExit_clicked();
 
+    void on_pbAddNewWorker_clicked();
+
+    void on_pbReg_clicked();
+
 private:
     Ui::MainWindow *ui;
     DataBase        *db;
@@ -45,7 +49,7 @@ private:
     void setInterfaceStyle();//метод для применения стилей интрефейса приложения
     void setTabWidgetStyle();
     void addNewUsluga_ui(QString text);
-    void clearClientLables();
+    void clearClientLables(int tab=3);//3-tab addclient 4-tab addworker
 
     QStringList listUslugi;
 

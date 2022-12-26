@@ -152,7 +152,8 @@ bool DataBase::createWorkersTable()
     if(!query.exec( "CREATE TABLE " WORKERS  " ("
                             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                             WORKER_LOGIN      " VARCHAR   NOT NULL,"
-                            WORKER_PASSWORD   " VARCHAR   NOT NULL "
+                            WORKER_PASSWORD   " VARCHAR   NOT NULL, "
+                            WORKER_STATUS     " VARCHAR   NOT NULL "
                              " )"
                     )){
         qDebug() << "DataBase: error of create " <<WORKERS;
@@ -169,8 +170,9 @@ bool DataBase::createAdminAcc()
 {
         QString log="admin";
         QString pass="12345";
+        QString status="admin";
         QSqlQuery query;
-        QString str=QString("INSERT INTO " WORKERS " (LOGIN, PASSWORD) VALUES('"+log+"', '"+pass+"')");
+        QString str=QString("INSERT INTO " WORKERS " (LOGIN, PASSWORD, STATUS) VALUES('"+log+"', '"+pass+"', '"+status+"')");
     //    query.bindValue(":LOG", "admin");
      //   query.bindValue(":PASS", "12345");
         qDebug()<< "try add ADMIN";
@@ -322,6 +324,48 @@ bool DataBase::add_new_client(const QStringList &list)
     if(query.exec(str))
     {
         add_new_record_uslugi(list[3]);
+        return true;
+    }
+    else
+    {
+        qDebug()<<query.lastError();
+        return false;
+    }
+}
+
+bool DataBase::check_admin_login(const QString &name)
+{
+      QString status="admin";
+      QSqlQuery query;
+      QString exist=nullptr;
+
+      QString str = QString("SELECT * FROM " WORKERS " WHERE " WORKER_LOGIN "= '"+name+"'"
+                                                     "AND " WORKER_STATUS "= '"+status+"'");
+      query.prepare(str);
+      query.exec();
+     qDebug()<< query.lastError();
+      if(query.isActive()){
+          qDebug()<<"query checking admin is active now";
+          while(query.next())
+          {
+              exist=query.value(0).toString();
+          }
+      }
+      else
+          qDebug()<<"ERROR checking admin:"<<query.lastError();
+
+      return exist==nullptr?false:true;
+}
+
+bool DataBase::add_new_worker(const QString login, const QString password, const QString status)
+{
+    QSqlQuery query;
+    QString str=QString("INSERT INTO " WORKERS " (LOGIN, PASSWORD, STATUS )"
+                        " VALUES('"+login+"', '"+password+"', '"+status+"')");
+
+    qDebug()<< "try add Worker";
+    if(query.exec(str))
+    {
         return true;
     }
     else

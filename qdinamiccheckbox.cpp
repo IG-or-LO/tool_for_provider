@@ -8,6 +8,7 @@ qdinamicCheckBox::qdinamicCheckBox( QWidget *parent):
     checkBoxID = ResID;   /* Присвоение кнопке номера, по которому будет производиться
                          * дальнейшая работа с кнопок
                          * */
+    setObjectName("dinamicCheckBox");
 }
 
 qdinamicCheckBox::~qdinamicCheckBox()
