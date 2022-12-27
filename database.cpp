@@ -283,7 +283,7 @@ QStringList DataBase::getNamesUslugi()
 bool DataBase::add_new_usluga(const QString text)
 {
     QSqlQuery query;
-    query.prepare("ALTER TABLE " USLUGI " ADD '"+text+"' BOOLEAN FALSE");
+    query.prepare("ALTER TABLE " USLUGI " ADD '"+text+"' BOOLEAN DEFAULT '0'");
     if(!query.exec())
     {
         qDebug()<<"cant add new usluga:"<<query.lastError();

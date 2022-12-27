@@ -133,7 +133,6 @@ void MainWindow::addComboBoxes()
     for (int i=0;i<listUslugi.size();i++) {
         qdinamicCheckBox *newbox=new qdinamicCheckBox(this);
        newbox->setStyleSheet(stylehelper::getUslugiCheck());
-      //  newbox->setStyle()
         newbox->setText(listUslugi[i]);
         newbox->setLayoutDirection(Qt::RightToLeft);
         ui->verticalLayout_3->addWidget(newbox);
@@ -146,7 +145,7 @@ void MainWindow::addNewUsluga_ui(QString text)
     qdinamicCheckBox *newbox=new qdinamicCheckBox;
     newbox->setLayoutDirection(Qt::RightToLeft);
     newbox->setText(text);
-//     newbox->setStyleSheet(stylehelper::getUslugiCheck());
+    newbox->setStyleSheet(stylehelper::getUslugiCheck());
     ui->verticalLayout_3->addWidget(newbox);
 }
 
@@ -171,7 +170,6 @@ void MainWindow::on_pbEnter_clicked()
 
 void MainWindow::on_pbShowUslugi_clicked()
 {
-
     QMessageBox mess;
     if(ui->leDogovor->text()=="")
     {
@@ -199,6 +197,7 @@ void MainWindow::on_pbShowUslugi_clicked()
                 box->setChecked(false);
         }
         ui->tabWidget->setCurrentIndex(2);
+
     }
 }
 
@@ -321,6 +320,7 @@ void MainWindow::on_pbExit_clicked()
 {
     ui->leName->clear();
     ui->lePass->clear();
+    ui->leDogovor->clear();
     ui->pbAddNewWorker->show();
     ui->tabWidget->setCurrentIndex(0);
 }
